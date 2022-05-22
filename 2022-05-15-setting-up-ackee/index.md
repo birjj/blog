@@ -1,4 +1,4 @@
-![Ackee header](https://i.imgur.com/XtTA5Ip.png)
+![Header image, showing the Ackee header](./imgs/header.png)
 
 # Setting up Ackee - privacy-aware analytics for free
 
@@ -23,7 +23,7 @@ So the plan right now is:
 
 Thanks to MongoDB Atlas, getting our database set up takes a matter of minutes. Start by heading to [their pricing page](https://www.mongodb.com/pricing) and selecting "Try for Free" on their shared plan. The first thing you should see after creating an account is the cluster creation screen.
 
-<img align="right" style="padding:16px" src="https://i.imgur.com/hw7kCN2.png" width="434" /></p>
+<img align="right" style="padding:16px" src="./imgs/mongodb_atlas.png" width="434" /></p>
 
 There aren't any critical settings to choose here; pick whichever location you like the most (although keeping it close to your Vercel location helps performance), and set a memorable cluster name.
 
@@ -31,7 +31,7 @@ When it comes to choosing the authentication method you'll want to choose a user
 
 At this point we almost have a working MongoDB database! Before we can connect to it we still need to open up the network firewall, and find our connection string. When prompted for the IP address that you'll be connecting from, [make sure you enter `0.0.0.0/0`](https://vercel.com/docs/concepts/solutions/databases#allowing-and-blocking-ip-addresses). Once that's done, you should have a cluster ready to go on your MongoDB Atlas dashboard:
 
-<img src="https://i.imgur.com/TedqD9o.png" />
+![The MongoDB dashboard after cluster creation](./imgs/mongodb_dashboard.png)
 
 Click "Connect" and "Connect your application", and note down the connection string you're shown. Don't forget to replace `<password>` with the password you created earlier.
 
@@ -43,7 +43,7 @@ Getting Ackee itself set up is equally trivial thanks to the easy hosting offere
 
 Start by forking [the Ackee repository](https://github.com/electerious/Ackee). This will create a copy of the code under your own GitHub account, which is where we'll point Vercel. Whenever this fork is updated, Vercel will compile and publish the code. Since it's a fork, staying up to date is therefore as simple as clicking the "Fetch upstream" button on the fork whenever new versions of Ackee are released!
 
-<img src="https://i.imgur.com/YzzFSkI.png" align="left" width="400" />
+<img src="./imgs/vercel_configuration.png" align="left" width="400" />
 
 For the Vercel side of things, log in to [Vercel](https://vercel.com/) and link up your GitHub account if you haven't already. [Create a new project](https://vercel.com/new) and import your Ackee fork from the git repository list.
 
@@ -68,7 +68,7 @@ Click "Deploy" and *\*boom\** you should now have a deployed Ackee project up an
 
 Head over to the domain your Ackee is hosted on and log in using the credentials you specified in `ACKEE_USERNAME` and `ACKEE_PASSWORD`. You'll be greeted by an empty dashboard - let's get some data added!
 
-<img src="https://i.imgur.com/ODL0ppu.png" align="right" width="375" />
+<img src="./imgs/ackee_domain.png" align="right" width="375" />
 
 Click the "Settings" link in the header and scroll down to "Domains". Click "New domain" and enter the domain as the title. You'll want this to be of the format `subdomain.example.com`, without protocol or path. This way Ackee will detect it as a domain, and automatically attach CORS headers (since we set `ACKEE_AUTO_ORIGIN` to `true`).
 
