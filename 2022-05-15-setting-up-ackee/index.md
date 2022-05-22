@@ -16,7 +16,7 @@ Vercel doesn't host databases though. For that, we'll need to find a MongoDB ser
 
 So the plan right now is:
 
-1. Set up a MongoDB database using the free tier of MongoDB Atlas. This is somewhat limited in how much data can be stored (up to 5GB) - but if we ever were to reach that limit we could always upgrade our plan.
+1. Set up a MongoDB database using the free tier of MongoDB Atlas. This is somewhat limited in how much data can be stored (up to 512MB) - but is great for getting started quickly, and can easily be upgraded if needed.
 2. Set up a Vercel project to host the Ackee frontend and GraphQL backend. Their generous personal hobby plan allows us to run serverless functions and host static frontends for free, as long as we don't exceed our quota.
 
 ## Hosting the database
@@ -36,3 +36,48 @@ At this point we almost have a working MongoDB database! Before we can connect t
 Click "Connect" and "Connect your application", and note down the connection string you're shown. Don't forget to replace `<password>` with the password you created earlier.
 
 And that's it for the MongoDB database!
+
+## Hosting Ackee
+
+Getting Ackee itself set up is equally trivial thanks to the easy hosting offered by Vercel. We'll be setting the project up manually, instead of using Ackee's project link, because doing so allows us to more easily keep up to date in the future. Don't worry: it's equally as easy to set up manually, and gives you a better idea of what's going on.
+
+Start by forking [the Ackee repository](https://github.com/electerious/Ackee). This will create a copy of the code under your own GitHub account, which is where we'll point Vercel. Whenever this fork is updated, Vercel will compile and publish the code. Since it's a fork, staying up to date is therefore as simple as clicking the "Fetch upstream" button on the fork whenever new versions of Ackee are released!
+
+<img src="https://i.imgur.com/YzzFSkI.png" align="left" width="400" />
+
+For the Vercel side of things, log in to [Vercel](https://vercel.com/) and link up your GitHub account if you haven't already. [Create a new project](https://vercel.com/new) and import your Ackee fork from the git repository list.
+
+You'll be taken to the project configuration page - this is where you'll set up how Vercel builds the project, and which environment variables are set to configure Ackee. The most important is the build settings: make sure "Build command" is set to `yarn build`, and "Output directory" is set to `dist`.
+
+For the environment variables you might want to refer to [Ackee's documentation](https://github.com/electerious/Ackee/blob/master/docs/Options.md); however, if you're happy to just follow my configuration, here's what I use:
+
+<dl>
+  <dt>ACKEE_USERNAME<br>ACKEE_PASSWORD</dt>
+  <dd>These are the username and password you want to use for logging in to Ackee's analytics page.</dd>
+  <dt>ACKEE_MONGODB</dt>
+  <dd>This is the URL to your database. Remember the URL we copied at the end of <a href="#hosting-the-database">Hosting the database</a>? Paste that here, making sure you've updated the <code>&lt;password&gt;</code> text.</dd>
+  <dt>ACKEE_AUTO_ORIGIN</dt>
+  <dd>Should be set to <code>true</code>. This enables automatic CORS headers: if you tell Ackee to track <code>example.com</code>, with this setting enabled it will respond to all requests from <code>example.com</code> with the correct CORS headers. If this wasn't set to <code>true</code> we would have to manually specify the domains we want in another env variable</dd>
+  <dt>ACKEE_TRACKER</dt>
+  <dd>By default Ackee hosts its tracking script on <code>/tracker.js</code>. I like to use the prettier name <code>/ackee.js</code>. By setting <code>ACKEE_TRACKER</code> to <code>ackee</code>, the script is hosted under both names.</dd>
+</dl>
+
+Click "Deploy" and *\*boom\** you should now have a deployed Ackee project up and running. It will take a few seconds for Vercel to build it and deploy it, but you should very quickly see the deployment succeeding and going up on the auto-generated `.vercel.app` domain. If you want, feel free to [setup a custom domain](https://vercel.com/docs/concepts/projects/custom-domains) - otherwise, let's continue. We're almost done!
+
+## Configuring Ackee
+
+Head over to the domain your Ackee is hosted on and log in using the credentials you specified in `ACKEE_USERNAME` and `ACKEE_PASSWORD`. You'll be greeted by an empty dashboard - let's get some data added!
+
+<img src="https://i.imgur.com/ODL0ppu.png" align="right" width="375" />
+
+Click the "Settings" link in the header and scroll down to "Domains". Click "New domain" and enter the domain as the title. You'll want this to be of the format `subdomain.example.com`, without protocol or path. This way Ackee will detect it as a domain, and automatically attach CORS headers (since we set `ACKEE_AUTO_ORIGIN` to `true`).
+
+Click the newly added domain in the domains list and you'll get a popup containing information about the domain, including the embed code needed to start using Ackee. Copy the code, add it to the target website, and *voilà* - you're done!
+
+If you're not seeing any data added to the dashboard when you view the target site, it might be because Ackee tries to avoid tracking the owner of the site. Visit the page in an incognito/private browser and see if that helps. Otherwise have a look at the browser console. Does it complain about CORS headers? Then make sure the name of the domain on Ackee is a valid domain, and that it matches where the requests are coming from. As a last resort you can always [open an issue](https://github.com/electerious/Ackee/issues) with as much information as you can about what's going wrong.
+
+## Conclusion
+
+Congratulations! You've just set up your very own privacy-aware analytics solution for small personal projects, for absolutely free. It's important to remember that the journey doesn't end here; as with anything involving user data, you'll need to evaluate how this implementation interacts with things like GDPR, the ePrivacy Directive and whatever other privacy regulation you or your users are under. As I am not a lawyer I cannot give legal advice for this part - but keep an eye out for an upcoming blog post where I'll evaluate what EU says about cookie banners.
+
+Until then, happy developing!
