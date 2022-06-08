@@ -78,6 +78,4 @@ If you're not seeing any data added to the dashboard when you view the target si
 
 ## Conclusion
 
-Congratulations! You've just set up your very own privacy-aware analytics solution for small personal projects, for absolutely free. It's important to remember that the journey doesn't end here; as with anything involving user data, you'll need to evaluate how this implementation interacts with things like GDPR, the ePrivacy Directive and whatever other privacy regulation you or your users are under. As I am not a lawyer I cannot give legal advice for this part - but keep an eye out for an upcoming blog post where I'll evaluate what EU says about cookie banners.
-
-Until then, happy developing!
+Congratulations! You've just set up your very own privacy-aware analytics solution for small personal projects, for absolutely free. It's important to remember that the journey doesn't end here; as with anything involving user data, you'll need to evaluate how this implementation interacts with things like GDPR, the ePrivacy Directive and whatever other privacy regulation you or your users are under. Despite common beliefs, privacy-aware and cookie-free analytics [doesn't exempt you from cookie banners](../2022-06-09-analytics-cookie-compliance/index.md).
