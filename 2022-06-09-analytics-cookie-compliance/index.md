@@ -1,6 +1,6 @@
 # Do cookie-free analytics need cookie compliance popups?
 
-It might sound like a bit of a weird question; if we don't use cookies, surely there's no way we'd be violating cookie laws. That's why it was surprising to me to learn that **yes**, if we want to be in compliance with EU's ePrivacy Directive (commonly called the cookie law) without using cookie banners, we'll need to meet far stricter criterias than just "not using cookies".
+It might sound like a bit of a weird question; if we don't use cookies, surely there's no way we'd be violating cookie laws. That's why it was surprising to me to learn that we actually do: if we want to be in compliance with EU's ePrivacy Directive (commonly called the cookie law) without using cookie banners, we'll need to meet far stricter criterias than just "not using cookies". Keep reading for a deep dive.
 
 ## Technical background
 
