@@ -52,7 +52,7 @@ Since things like GeoIP lookups use the IP address, and therefore require access
 </dd>
 
 <dt>User-Agent (and other HTTP headers)</dt>
-<dd>Covered by the Directive as the user agent is data that has previously been stored by the browser vendor, which we then access. As put by the EU Data Protection Working Party in [a 2014 opinion on fingerprinting](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf):<br><br>
+<dd>Covered by the Directive as the user agent is data that has previously been stored by the browser vendor, which we then access. As put by the EU Data Protection Working Party in <a href="https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf">a 2014 opinion on fingerprinting</a>:<br><br>
 
 <blockquote>Information that is stored by one party (including information stored by the user or device manufacturer) which is later accessed by another party is therefore within the scope of Article 5(3). [...] The consent requirement also applies when a read-only value is accessed (e.g. requesting the MAC address of a network interface via the OS API).</blockquote>
 
