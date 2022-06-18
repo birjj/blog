@@ -37,6 +37,8 @@ If we look at [the algorithm used by Fathom](https://usefathom.com/blog/anonymiz
 
 A similar story is true for [Plausible's algorithm](https://plausible.io/data-policy). It collects the following information: IP address, user agent, page URL and referer. Here the IP address, user agent and referer require consent according to the ePrivacy Directive, so we are in exactly the same boat as with Fathom: privacy-aware and cookie-free or not, a cookie popup is legally required. Even the people behind Plausible seem to be confused here, using (at the time of this writing) "No need for cookie banners or GDPR consent" as one of the titles on their landing page.
 
+Every other privacy-aware analytics solution I've found, including [Ackee](https://github.com/electerious/Ackee/blob/master/docs/Anonymization.md) and [Counter](https://github.com/ihucos/counter.dev#how-can-it-be-free), also use data covered by the ePrivacy Directive.
+
 ## So can we fingerprint people at all without cookie popups?
 
 Let's have a look at the various datapoints we can use to identify repeat visits, and what the ePrivacy Directive says about them:
