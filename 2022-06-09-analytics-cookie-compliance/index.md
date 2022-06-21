@@ -30,7 +30,11 @@ When we're talking about analytics there are primarily two different EU laws we'
 We'll be focusing our efforts on the cookie law since the consent required by GDPR can be largely skirted around by anonymizing data properly.
 
 Two common misconceptions of the cookie law are that 1) it only applies to data stored in cookies, and 2) that it only applies to personal data.  
-As put in Article 5(3) of the ePrivacy Directive, _"[...] the storing of information, or the gaining of access to information already stored, in the terminal equipment of a subscriber or user is only allowed on condition that the subscriber or user concerned has given his or her consent [...]"_. This covers information stored in cookies, information stored in local storage, and even (as we shall see later) information previously stored on the device by others, such as browser user agents. We therefore can't skirt the legislation by simply using other storage mechanisms, despite the unofficial "cookie law" misnomer.  
+As put in Article 5(3) of the ePrivacy Directive:
+
+> [...] the storing of information, or the gaining of access to information already stored, in the terminal equipment of a subscriber or user is only allowed on condition that the subscriber or user concerned has given his or her consent [...]
+
+This covers information stored in cookies, information stored in local storage, and even (as we shall see later) information previously stored on the device by others, such as browser user agents. We therefore can't skirt the legislation by simply using other storage mechanisms, despite the unofficial "cookie law" misnomer.  
 The directive also doesn't have any exceptions for anonymized data. As put by the EU Data Protection Working Party in [a 2014 opinion on anonymization](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp216_en.pdf), *"anonymisation is a technique applied to personal data in order to achieve irreversible de-identification. Therefore, the starting assumption is that the personal data must have been collected and processed in compliance with the applicable legislation on the retention of data in an identifiable format."* This means that the simple act of accessing the data in the first place is restricted.
 
 If we look at [the algorithm used by Fathom](https://usefathom.com/blog/anonymization), we see that it collects the following information for fingerprinting: IP address, user agent, site domain name, and site ID. Two of these can be accessed without relying on the user's device: the site domain and the site ID. The IP address and user agent, as we'll see below, are explicitly covered by the ePrivacy Directive, and therefore require user consent to access. This means that even if we use Fathom analytics, even despite its cookie-free and privacy-friendly design, we'll *still* need a cookie banner to get user consent.
@@ -44,21 +48,27 @@ Every other privacy-aware analytics solution I've found, including [Ackee](https
 Let's have a look at the various data points we can use to identify repeat visits, and what the ePrivacy Directive says about them:
 
 <dl>
-<dt>IP address</dt>
+<dt>IP address or other traffic data</dt>
 <dd>Covered by the Directive under traffic data:<br><br>
 
 <blockquote>(26) The data [...] processed within electronic communications networks to establish connections and to transmit information contain information on the private life of natural persons [...]. Such data may only be stored to the extent that is necessary for the provision of the service for the purpose of billing and for interconnection payments, and for a limited time. Any further processing of such data [...] may only be allowed if the subscriber has agreed to this on the basis of accurate and full information given by the provider [...]. Traffic data used for marketing communications services or for the provision of value added services should also be erased or made anonymous after the provision of the service. Service providers should always keep subscribers informed of the types of data they are processing and the purposes and duration for which this is done.</blockquote>
 
-Not only does this require us to get consent before processing a user's IP address, but it also requires us to immediately anonymize it (if we weren't already).  
+Not only does this require us to get consent before processing a user's IP address, but it also requires us to immediately anonymize it (if we weren't already). This covers all traffic data regardless of how it is accessed. You can of course use still use the IP address for traffic purposes, but anything else requires informed consent.
+
 Since things like GeoIP lookups use the IP address and therefore require accessing it first, using a user's country or city is also covered.
 </dd>
 
-<dt>User-Agent (and other HTTP headers)</dt>
-<dd>Covered by the Directive as the user agent is data that has previously been stored by the browser vendor, which we then access. As put by the EU Data Protection Working Party in <a href="https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf">a 2014 opinion on fingerprinting</a>:<br><br>
+<dt>Screen size, browser version and other client data</dt>
+<dd>Covered by the Directive as data that has previously been stored by the browser vendor or device manufacturer, which we then access. As put by the EU Data Protection Working Party in <a href="https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf">a 2014 opinion on fingerprinting</a>:<br><br>
 
 <blockquote>Information that is stored by one party (including information stored by the user or device manufacturer) which is later accessed by another party is therefore within the scope of Article 5(3). [...] The consent requirement also applies when a read-only value is accessed (e.g. requesting the MAC address of a network interface via the OS API).</blockquote>
 
-In the same opinion, they also cover the act of fingerprinting using HTTP headers, using the User-Agent header as an example, and conclude it to be a privacy violation.
+In the same opinion, they also cover the act of fingerprinting using HTTP headers, using the User-Agent header as an example, but do not specifically mention it as requiring informed consent.
+</dd>
+<dt>User-Agent, Referer, and other HTTP headers</dt>
+<dd>It could be argued that reading these headers isn't gaining access to data stored on the user's terminal equipment. However, these headers are specifically designed to allow tailoring of a response to the requester, and are sent for the purpose of allow the server to transmit the correct data (as described in <a href="https://httpwg.org/specs/rfc7231.html#header.user-agent">the specification</a>).
+
+Since the ePrivacy Directive defines traffic data as being <em>"any data processed for the purpose of the conveyance of a communication on an electronic communications network or for the billing thereof"</em>, this means these HTTP headers also require informed consent.
 </dd>
 
 <dt>Any data stored by third parties (or us)</dt>
@@ -66,12 +76,11 @@ In the same opinion, they also cover the act of fingerprinting using HTTP header
 
 <blockquote>[...] the storing of information, or the gaining of access to information already stored, in the terminal equipment of a subscriber or user is only allowed on condition that the subscriber or user concerned has given his or her consent [...]</blockquote>
 
-As pointed out by the Working Party in the previously quoted [opinion on fingerprinting](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf), this includes information stored by the user themselves or by device manufacturers - not to mention third parties. It blocks essentially all fingerprinting data available to us, which has not already been covered.
+As pointed out by the Working Party in the previously quoted [opinion on fingerprinting](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf), this includes information stored by the user themselves or by device manufacturers - not to mention third parties. It blocks essentially all direct tracking, as it is intended to.
+</dd>
 </dl>
 
-This leaves us with - as far as I can see - no data points left to use for fingerprinting without asking the user for informed consent. While this is certainly a win for privacy when it comes to companies that are interested in finding loopholes that let them track users, it does extinguish all hope we have of escaping the popup nightmare the web has become today.
-
-Note that we *can* still do some analytics: any data that doesn't require accessing any data related to the user can be tracked safely. This pretty much only covers total page views and which pages are the most popular, but it might just be enough for you if you're content with minimal analytics.
+This leaves us with very few, if any, data points left to use for fingerprinting without asking the user for informed consent. While this is certainly a win for privacy when it comes to companies that are interested in finding loopholes that let them track users, it does extinguish any hope we have of escaping the popup nightmare the web has become today.
 
 ## So what *can* we use cookies for?
 
