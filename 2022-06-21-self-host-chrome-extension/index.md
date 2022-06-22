@@ -8,7 +8,7 @@ The block is pretty extensive. If you try to install an extension by simply foll
 
 <div align="center">
   
-![Screenshot of the CRX_REQUIRED_PROOF_MISSING error](https://user-images.githubusercontent.com/4542461/174885102-e0099da9-c975-41eb-a3d4-20e2471f7c51.png)
+![Screenshot of the CRX_REQUIRED_PROOF_MISSING error](./imgs/ext_required_proof.png)
 
 </div>
 
@@ -16,7 +16,7 @@ If you manually download the .crx and drag it onto the `chrome://extensions` pag
 
 <div align="center">
 
-![Screenshot of the hard-disabled extension](https://user-images.githubusercontent.com/4542461/174886644-fb47c203-0aa0-40f1-823c-8d293f2fe437.png)
+![Screenshot of the hard-disabled extension](./imgs/ext_hard_disabled.png)
 
 </div>
 
