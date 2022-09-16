@@ -22,14 +22,16 @@ The rest of the work will happen in your GitHub repo. Head over to `Settings > S
 
 ![The GitHub interface after adding the secret](https://user-images.githubusercontent.com/4542461/185649260-ccaefdef-fbd1-4ce6-9a19-81312403bee2.png)
 
-Finally all we have left to do is add the actual GitHub Action! Create a new file in `.github/workflows` in your repository, and create a file like the following:
+Finally all we have left to do is add the actual GitHub Action! Create a new file in `.github/workflows` in your repository (e.g. `.github/workflows/release.yml`), and paste an action configuration like the following:
 
 ```yml
 name: Release to Netlify
 on:
-  # I chose to publish on every commit for this project
+  # I chose to publish on every commit to the primary branch for this project
   # See https://docs.github.com/en/actions/using-workflows/triggering-a-workflow for how to configure this
   push:
+    branches:
+      - master
 
 jobs:
   Release:
