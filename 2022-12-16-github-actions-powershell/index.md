@@ -29,38 +29,72 @@ New-PowerShellProject -CICDChoice 'GitHubActions' -DestinationPath './Module-Nam
 
 This will set up a general module structure for development. While this structure largely fit my needs (and has been designed by people much smarter than me), I did find that I needed to make a few changes:
 
-- Improve `actions_boostrap.ps1`. This is a file Catesta sets up to install the necessary modules. However, I found that not only was this file incredibly slow when ran in a CI environment, as it forced installs of modules even if already installed, but it would also sometimes fail (e.g. if you had a PowerShell instance open with one of the modules imported). I added the following to improve on it:
+### `actions_bootstrap.ps1`
+
+This is a file Catesta sets up to install the necessary modules. However, I found that not only was this file incredibly slow when ran in a CI environment, as it forced installs of modules even if already installed, but it would also sometimes continue execution even if installation of a module failed (e.g. if you had a PowerShell instance open with one of the modules imported). I added the following to improve on it:
     
-    ```diff
-    'Installing PowerShell Modules'
-    foreach ($module in $modulesToInstall) {
-        $installSplat = @{
-            Name               = $module.ModuleName
-            RequiredVersion    = $module.ModuleVersion
-            Repository         = 'PSGallery'
-            SkipPublisherCheck = $true
-            Force              = $true
-            ErrorAction        = 'Stop'
-        }
-    +   $curVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
-    +   if ($curVersion -eq $module.ModuleVersion) {
-    +       "  - Already installed $($module.ModuleName) ${curVersion}, skipping"
-    +       continue
-    +   }
-        try {
-    +       "  - Installing $($module.ModuleName) $($module.ModuleVersion) (from old version ${curVersion})"
-            Install-Module @installSplat
-            Import-Module -Name $module.ModuleName -ErrorAction Stop
-    +       $newVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
-    +       if ($newVersion -ne $module.ModuleVersion) {
-    +           throw "New version ${newVersion} does not match expected $($module.ModuleVersion)"
-    +       }
-            '  - Successfully installed {0}' -f $module.ModuleName
-        }
-        catch {
-            $message = 'Failed to install {0}' -f $module.ModuleName
-            "  - $message"
-            throw
-        }
+```diff
+'Installing PowerShell Modules'
+foreach ($module in $modulesToInstall) {
+    $installSplat = @{
+        Name               = $module.ModuleName
+        RequiredVersion    = $module.ModuleVersion
+        Repository         = 'PSGallery'
+        SkipPublisherCheck = $true
+        Force              = $true
+        ErrorAction        = 'Stop'
     }
-    ```
++   $curVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
++   if ($curVersion -eq $module.ModuleVersion) {
++       "  - Already installed $($module.ModuleName) ${curVersion}, skipping"
++       continue
++   }
+    try {
++       "  - Installing $($module.ModuleName) $($module.ModuleVersion) (from old version ${curVersion})"
+        Install-Module @installSplat
+        Import-Module -Name $module.ModuleName -ErrorAction Stop
++       $newVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
++       if ($newVersion -ne $module.ModuleVersion) {
++           throw "New version ${newVersion} does not match expected $($module.ModuleVersion)"
++       }
+        '  - Successfully installed {0}' -f $module.ModuleName
+    }
+    catch {
+        $message = 'Failed to install {0}' -f $module.ModuleName
+        "  - $message"
+        throw
+    }
+}
+```
+
+### `src/PSScriptAnalyzerSettings.psd1`
+
+This file is used to configure the PowerShell linter [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer), which runs every time we build to module. While the defaults set up by Catesta are nice, I did find that there were some rules that caused more problems than they solved. In particular, I added the following:
+    
+```diff
+@{
+    # ...
+    #ExcludeRules
+    #Specify ExcludeRules when you want to exclude a certain rule from the the default set of rules.
+   ExcludeRules        = @(
++       'PSAvoidUsingWriteHost',                       # I often create modules that write user-facing information, instead of programmatic output
++       'PSUseSingularNouns',                          # If I'm working on functions that take lists of items, I want to use plural nouns
++       'PSUseShouldProcessForStateChangingFunctions'  # The heuristic for when to apply this rule is simply too poor, making it unusable
+    )
+    # ...
+}
+```
+
+### `src/Module-Name/Module-Name.psd1`
+
+Modifying this file is actually a requirement by Catesta. It contains the module manifest that will be used by PowerShell and PSGallery to understand the module, and contains a few crucial fields that must be set manually:
+
+<dl>
+<dt><code>FunctionsToExport|CmdletsToExport|VariablesToExport|AliasesToExport = '*'</code></dt>
+<dd>Contains a list of the functions, cmdlets, variables or aliases the module exports. The default value <code>'*'</code> is not good practice, and will throw an error in the linting stage. Update these as you develop the module (e.g. <code>'Foo','Bar'</code>), or set them to the empty list <code>@()</code> if you have none to export.</dd>
+
+<dt><code>PrivateData.PSData.ProjectUri</code></dt>
+<dd>Contains a link to the main website for the project, which will be shown on the PSGallery page. Will throw an error in the linting stage if not set. Usually I set this to the link of the repository on GitHub, linking directly to the sub-folder of the module if I'm using a monorepo.</dd>
+</dl>
+
+## Building the module for the first time
