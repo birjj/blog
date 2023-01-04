@@ -98,3 +98,20 @@ Modifying this file is actually a requirement by Catesta. It contains the module
 </dl>
 
 ## Building the module for the first time
+
+Once the above changes are done, we'll want to test that the build process still works:
+
+```shell
+$ .\actions_bootstrap.ps1
+Installing PowerShell Modules
+  - Already installed Pester 5.3.3, skipping
+  - Installing InvokeBuild 5.10.1 (from old version 5.9.9.0)
+  - Successfully installed InvokeBuild
+  - Already installed PSScriptAnalyzer 1.21.0, skipping
+  - Already installed platyPS 0.12.0, skipping
+$ Invoke-Build -File .\src\ModuleName.build.ps1
+# ...  output removed for clarity
+Build succeeded. 18 tasks, 0 errors, 0 warnings 00:00:12.3459517
+```
+
+Depending on whether or not you've implemented your module, you might have a failing test - this is intentional from the Catesta template we used to generate the project. Fixing it is a good introduction to how the project is set up.
