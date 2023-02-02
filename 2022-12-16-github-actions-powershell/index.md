@@ -33,9 +33,15 @@ This will set up a general module structure for development. While this structur
 
 This is a file Catesta sets up to install the necessary modules. However, I found that not only was this file incredibly slow when ran in a CI environment, as it forced installs of modules even if already installed, but it would also sometimes continue execution even if installation of a module failed (e.g. if you had a PowerShell instance open with one of the modules imported). I added the following to improve on it:
     
-```diff
+```powershell
 'Installing PowerShell Modules'
 foreach ($module in $modulesToInstall) {
+    $updateSplat = @{
+        Name            = $module.ModuleName
+        RequiredVersion = $module.ModuleVersion
+        Force           = $true
+        ErrorAction     = 'Stop'
+    }
     $installSplat = @{
         Name               = $module.ModuleName
         RequiredVersion    = $module.ModuleVersion
@@ -44,22 +50,26 @@ foreach ($module in $modulesToInstall) {
         Force              = $true
         ErrorAction        = 'Stop'
     }
-+   $curVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
-+   if ($curVersion -eq $module.ModuleVersion) {
-+       "  - Already installed $($module.ModuleName) ${curVersion}, skipping"
-+       continue
-+   }
-    try {
-+       "  - Installing $($module.ModuleName) $($module.ModuleVersion) (from old version ${curVersion})"
-        Install-Module @installSplat
-        Import-Module -Name $module.ModuleName -ErrorAction Stop
-+       $newVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version
-+       if ($newVersion -ne $module.ModuleVersion) {
-+           throw "New version ${newVersion} does not match expected $($module.ModuleVersion)"
-+       }
-        '  - Successfully installed {0}' -f $module.ModuleName
+    $curVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version -Last 1
+    if ($curVersion -eq $module.ModuleVersion) {
+        "  - Already installed $($module.ModuleName) ${curVersion}, skipping"
+        continue
     }
-    catch {
+    try {
+        if ($curVersion) {
+            "  - Updating to $($module.ModuleName) $($module.ModuleVersion) (from old version ${curVersion})"
+            Update-Module @updateSplat
+        } else {
+            "  - Installing $($module.ModuleName) $($module.ModuleVersion) (not previously installed)"
+            Install-Module @installSplat
+        }
+        Import-Module -Name $module.ModuleName -RequiredVersion $module.ModuleVersion -ErrorAction Stop
+        $newVersion = Get-Module $module.ModuleName | Select-Object -ExpandProperty Version -Last 1
+        if ($newVersion -ne $module.ModuleVersion) {
+            throw "New version ${newVersion} does not match expected $($module.ModuleVersion)"
+        }
+        '  - Successfully installed {0}' -f $module.ModuleName
+    } catch {
         $message = 'Failed to install {0}' -f $module.ModuleName
         "  - $message"
         throw
