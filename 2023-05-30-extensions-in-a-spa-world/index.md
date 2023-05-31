@@ -1,4 +1,5 @@
-> :warning: This blog post is currently unfinished.
+> **Warning**
+> This blog post is currently unfinished.
 
 # Writing web extensions in an SPA-world
 
