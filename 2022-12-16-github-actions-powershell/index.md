@@ -1,3 +1,6 @@
+> **Warning**
+> This blog post is currently unfinished.
+
 # Using GitHub Actions to automate testing and publishing of PowerShell modules
 
 I've recently had to dip my toes into PowerShell module development. Being far from an expert on PowerShell or the community around it, I found it a bit daunting to setup my module development space for the first time. For the sake of saving you (and me) the trouble of going through that again, I'll be describing my module development setup here. This will largely focus on the actual code layout, and not so much on the PowerShell code.
