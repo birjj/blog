@@ -24,7 +24,7 @@ flowchart TD
 
     subgraph script [Content script]
         observer{{DOM observer}}
-        injection1{{"Sidebar injection\nWatches '.sidebar'"}}
+        injection1{{"Example injection\nWatches '.example'"}}
     end
 
     subgraph page [Existing page]
@@ -59,16 +59,15 @@ type InjectedHTMLElement = HTMLElement & {
 This is a very flexible structure; by enforcing no opinions on what the injection does with the element it is interested in, we allow it to do a number of things. Do manual DOM modifications? Sure thing. Simple logging? I don't see why not. Inject your own React root, in case you want to develop your extensions UI in React? Easily implemented using a helper function:
 
 ```typescript
-type InjectedReactElement = InjectedHTMLElement & { ___reactRoot?: ReturnType<typeof createRoot>; };
+type InjectedReactElement = InjectedHTMLElement & {
+  ___reactRoot?: ReturnType<typeof createRoot>;
+};
 
 /** Utility function to ease the writing of React-based injections */
-export function reactInjection(
-  selector: string, // the element to inject into whenever it's added to the DOM
-  // the React node to insert into our React root
-  elm: React.ReactNode,
-  // in case we don't want to inject our React root directly into the element,
-  // this allows us to create an arbitrary container element first
-  rootGenerator: ($elm: HTMLElement) => HTMLElement = $e => $e,
+function reactInjection(
+  selector: string,                                  // selectors for elements we're interested in
+  rootGenerator: ($elm: HTMLElement) => HTMLElement, // generates the root element we want to insert our React node into
+  reactNode: ($elm: HTMLElement) => React.ReactNode  // generates the React node we want to render (e.g. <App />)
 ): InjectionConfig {
   return {
     selector,
@@ -79,7 +78,7 @@ export function reactInjection(
         enumerable: false,
         value: root,
       });
-      root.render(elm);
+      root.render(reactNode($elm));
     },
     unmount: ($elm: InjectedReactElement) => {
       if (!$elm.___reactRoot) {
@@ -96,48 +95,102 @@ export function reactInjection(
 The job of actually observing the DOM is also relatively simple: since each injection defines the selectors it is interested in, the only job of the observer is to keep track of elements as they are added and removed:
 
 ```typescript
-const INJECTIONS: InjectionConfig[] = [/* ... */];
-const MOUNTED: Set<InjectedHTMLElement> = new Set();
+class InjectionObserver {
+  #observer: MutationObserver;
+  #injections: InjectionConfig[];
+  #observed: Set<InjectedHTMLElement> = new Set();
 
-/** Reacts to element additions/removals, running relevant injections */
-function onDOMChanges() {
-  INJECTIONS.forEach((config) => {
-    const { selector, mount } = config;
-    const $elms = Array.from(
-      document.querySelectorAll(selector)
-    ) as InjectedHTMLElement[];
-    $elms.forEach(($elm) => {
-      if (!$elm) { return; }
-      if (!$elm.___attached) {
-        Object.defineProperty($elm, "___attached", {
-          value: new Set([config]),
-          enumerable: false,
-        });
-        mount($elm);
-        MOUNTED.add($elm);
-      } else if (!$elm.___attached.has(config)) {
-        $elm.___attached.add(config);
-        mount($elm);
+  constructor(injections: InjectionConfig[]) {
+    this.onMutations = this.onMutations.bind(this);
+    this.attach = this.attach.bind(this);
+    this.detach = this.detach.bind(this);
+
+    this.#injections = injections;
+    this.#observer = new MutationObserver(this.onMutations);
+    this.#observer.observe(document.documentElement || document.body, {
+      subtree: true,
+      childList: true,
+    });
+    this.attach(document.documentElement || document.body);
+  }
+  disconnect() {
+    this.#observer.disconnect();
+  }
+
+  attach($elm: HTMLElement) {
+    this.#injections.forEach((config) => {
+      const { selector, mount } = config;
+      const $elms: InjectedHTMLElement[] = Array.from(
+        $elm.querySelectorAll ? $elm.querySelectorAll(selector) : []
+      );
+      if ($elm.matches && $elm.matches(selector)) {
+        $elms.push($elm);
+      }
+      $elms.forEach(($elm) => {
+        if (!$elm.___attached) {
+          Object.defineProperty($elm, "___attached", {
+            value: new Set([config]),
+            enumerable: false,
+            configurable: true,
+          });
+          mount($elm);
+          this.#observed.add($elm);
+        } else if (!$elm.___attached.has(config)) {
+          $elm.___attached.add(config);
+          mount($elm);
+        }
+      });
+    });
+  }
+
+  detach($elm: HTMLElement) {
+    this.#observed.forEach(($mounted) => {
+      if (!$mounted.___attached) {
+        return;
+      }
+      if ($elm.contains($mounted)) {
+        $mounted.___attached.forEach((config) => config.unmount?.($mounted));
+        this.#observed.delete($mounted);
+        delete $mounted.___attached;
       }
     });
-  });
+  }
 
-  MOUNTED.forEach(($elm: InjectedHTMLElement) => {
-    if (!$elm.isConnected && $elm.___attached) {
-      $elm.___attached.forEach(config => config.unmount?.($elm));
-      MOUNTED.delete($elm);
-      delete $elm.___attached;
-    }
-  });
+  onMutations(records: MutationRecord[]) {
+    records.forEach((record) => {
+      record.removedNodes.forEach(this.detach);
+      record.addedNodes.forEach(this.attach);
+    });
+  }
 }
-
-/** Watches the DOM for elements being added and removed */
-(function startWatching() {
-  const observer = new MutationObserver(onDOMChanges);
-  observer.observe(document.documentElement || document.body, {
-    subtree: true,
-    childList: true,
-  });
-  attach();
-})();
 ```
+
+## The result
+
+This architecture is an incredibly flexible way implement web extensions for SPA websites. By giving each individual feature the ability to easily react to relevant elements being added or removed, we save ourselves a lot of internal dependencies.
+
+For an example of how this can be used, see [my web extension for Azure DevOps](https://github.com/birjj/azdo-enhancer), which primarily uses React for its custom UI, and plain JS for non-UI DOM modifications:
+
+![Screenshot of the features in an Azure DevOps extension](./azdo_extension_example.png)
+
+Here we have a number of features, each implementing a different part of the extension:
+
+<dl><dt>Feature #1 - Pinned projects</dt>
+<dd>
+
+Uses the `reactInjection` helper function to insert a new React node in the header, whenever the header is added or removed. This React node renders a list of pinned projects. Since projects are pinned from other parts of the extension, they are kept track of in a [zustand](https://github.com/pmndrs/zustand)-based state store. This allows the extension to update the React nodes across React roots, or even from non-React parts of the extension.
+
+</dd>
+<dt>Feature #2 - Correctly rendered errors</dt>
+<dd>
+
+Uses a plain injection, with no React involved. Whenever a new error is rendered on the error list it parses the error content, and - if the error contains ANSI code - replaces it with a parsed HTML version of the ANSI error. This is done in plain JS.
+
+</dd>
+<dt>Feature #3 - Project pinning</dt>
+<dd>
+
+Uses the `reactInjection` helper function to insert a new React node in each sidebar link. The props for this React node is generated on a case-by-case basis, by parsing the sidebar link. It contains a button that, when clicked, toggles the pinned status of a project in the zustand store from feature #1.
+
+</dd>
+</dl>
