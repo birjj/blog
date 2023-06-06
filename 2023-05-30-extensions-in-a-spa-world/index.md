@@ -1,6 +1,3 @@
-> **Warning**
-> This blog post is currently unfinished.
-
 # Writing web extensions in an SPA-world
 
 The world of frontend web development has in recent years transitioned largely to SPA development; frameworks like React, Angular and Vue, and the massive ecosystem of tools that surround them, make it attractive to write applications that update the DOM themselves instead of relying on the browser's built-in navigation.
