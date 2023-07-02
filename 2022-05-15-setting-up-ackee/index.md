@@ -1,11 +1,10 @@
 ---
+title: Setting up Ackee - privacy-aware analytics for free
 date: 2022-05-15
 tags: ["analytics", "privacy", "tutorial"]
 ---
 
 ![Header image, showing the Ackee header](./imgs/header.png)
-
-# Setting up Ackee - privacy-aware analytics for free
 
 If you're anything like me, you have a number of small open-source projects that you've released onto the world. Seeing those projects being used by others is a big driving force - but for projects that are simply websites, tracking whether or not anyone is actually using them is non-trivial.
 
