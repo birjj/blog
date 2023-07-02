@@ -1,3 +1,8 @@
+---
+date: 2022-05-15
+tags: ["analytics", "privacy", "tutorial"]
+---
+
 ![Header image, showing the Ackee header](./imgs/header.png)
 
 # Setting up Ackee - privacy-aware analytics for free
@@ -62,7 +67,7 @@ For the environment variables you might want to refer to [Ackee's documentation]
   <dd>By default Ackee hosts its tracking script on <code>/tracker.js</code>. I like to use the prettier name <code>/ackee.js</code>. By setting <code>ACKEE_TRACKER</code> to <code>ackee</code>, the script is hosted under both names.</dd>
 </dl>
 
-Click "Deploy" and *\*boom\** you should now have a deployed Ackee project up and running. It will take a few seconds for Vercel to build it and deploy it, but you should very quickly see the deployment succeeding and going up on the auto-generated `.vercel.app` domain. If you want, feel free to [setup a custom domain](https://vercel.com/docs/concepts/projects/custom-domains) - otherwise, let's continue. We're almost done!
+Click "Deploy" and \*\*boom\*\* you should now have a deployed Ackee project up and running. It will take a few seconds for Vercel to build it and deploy it, but you should very quickly see the deployment succeeding and going up on the auto-generated `.vercel.app` domain. If you want, feel free to [setup a custom domain](https://vercel.com/docs/concepts/projects/custom-domains) - otherwise, let's continue. We're almost done!
 
 ## Configuring Ackee
 
@@ -72,7 +77,7 @@ Head over to the domain your Ackee is hosted on and log in using the credentials
 
 Click the "Settings" link in the header and scroll down to "Domains". Click "New domain" and enter the domain as the title. You'll want this to be of the format `subdomain.example.com`, without protocol or path. This way Ackee will detect it as a domain, and automatically attach CORS headers (since we set `ACKEE_AUTO_ORIGIN` to `true`).
 
-Click the newly added domain in the domains list and you'll get a popup containing information about the domain, including the embed code needed to start using Ackee. Copy the code, add it to the target website, and *voilà* - you're done!
+Click the newly added domain in the domains list and you'll get a popup containing information about the domain, including the embed code needed to start using Ackee. Copy the code, add it to the target website, and _voilà_ - you're done!
 
 If you're not seeing any data added to the dashboard when you view the target site, it might be because Ackee tries to avoid tracking the owner of the site. Visit the page in an incognito/private browser and see if that helps. Otherwise have a look at the browser console. Does it complain about CORS headers? Then make sure the name of the domain on Ackee is a valid domain, and that it matches where the requests are coming from. As a last resort you can always [open an issue](https://github.com/electerious/Ackee/issues) with as much information as you can about what's going wrong.
 

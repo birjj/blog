@@ -1,3 +1,9 @@
+---
+date: 2022-12-16
+tags: ["automation", "tutorial", "powershell"]
+wip: true
+---
+
 > **Warning**
 > This blog post is currently unfinished.
 
@@ -35,7 +41,7 @@ This will set up a general module structure for development. While this structur
 ### `actions_bootstrap.ps1`
 
 This is a file Catesta sets up to install the necessary modules. However, I found that not only was this file incredibly slow when ran in a CI environment, as it forced installs of modules even if already installed, but it would also sometimes continue execution even if installation of a module failed (e.g. if you had a PowerShell instance open with one of the modules imported). I added the following to improve on it:
-    
+
 ```powershell
 'Installing PowerShell Modules'
 foreach ($module in $modulesToInstall) {
@@ -83,7 +89,7 @@ foreach ($module in $modulesToInstall) {
 ### `src/PSScriptAnalyzerSettings.psd1`
 
 This file is used to configure the PowerShell linter [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer), which runs every time we build to module. While the defaults set up by Catesta are nice, I did find that there were some rules that caused more problems than they solved. In particular, I added the following:
-    
+
 ```diff
 @{
     # ...

@@ -1,8 +1,13 @@
+---
+date: 2022-06-21
+tags: ["web-extensions", "tutorial"]
+---
+
 # Self-hosting Chrome extensions in 2022
 
 When I made my first extension back in ye olden days - in the times of 30°C summers and $1.5 Costco hot dog meals - Google allowed developers to self-host Chrome extensions. This allowed users to install extensions directly from their website, without having to go through the Chrome Web Store.
 
-But as with all good things, a few bad apples spoil it for the rest of us. By allowing users to install extensions from anywhere, Google didn't have any control over what extensions were allowed. This made extensions a prime target for malware and search hijacking, with no way to revoke bad extensions once they were out there. In its continuous quest to protect users (... and maybe gain a bit of control over their ecosystem. It *is* Google, after all), Google [blocked installation of extensions](https://developer.chrome.com/docs/extensions/mv2/hosting_changes/) from outside the Web Store on all other platforms than Linux.
+But as with all good things, a few bad apples spoil it for the rest of us. By allowing users to install extensions from anywhere, Google didn't have any control over what extensions were allowed. This made extensions a prime target for malware and search hijacking, with no way to revoke bad extensions once they were out there. In its continuous quest to protect users (... and maybe gain a bit of control over their ecosystem. It _is_ Google, after all), Google [blocked installation of extensions](https://developer.chrome.com/docs/extensions/mv2/hosting_changes/) from outside the Web Store on all other platforms than Linux.
 
 The block is pretty extensive. If you try to install an extension by simply following a link, as you used to be able to, you'll be met with a `CRX_REQUIRED_PROOF_MISSING` error with no way to bypass it:
 
@@ -34,7 +39,7 @@ For the purpose of self-hosting extensions, the following policies are relevant:
 </dt>
 <dd>
 
-Lists the domains from which extension installations are allowed. Note that both the *host* domain (where the .crx is fetched from) and the *referrer* domain (where the link to the .crx is clicked from) must be added.  
+Lists the domains from which extension installations are allowed. Note that both the _host_ domain (where the .crx is fetched from) and the _referrer_ domain (where the link to the .crx is clicked from) must be added.  
 The value is a list of strings, with each entry specifying an allowed domain using [a match pattern](https://developer.chrome.com/docs/extensions/mv3/match_patterns/)
 
 </dd>
