@@ -1,7 +1,7 @@
 ---
-title: Writing web extensions in an SPA-world
+title: A framework for page-modifying web extensions in an SPA-world
 date: 2023-05-30
-tags: ["web-extensions", "tutorial"]
+tags: ["web-extensions"]
 ---
 
 The world of frontend web development has in recent years transitioned largely to SPA development; frameworks like React, Angular and Vue, and the massive ecosystem of tools that surround them, make it attractive to write applications that update the DOM themselves instead of relying on the browser's built-in navigation.

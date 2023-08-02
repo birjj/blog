@@ -1,7 +1,7 @@
 ---
 title: Using GitHub Actions to automate testing and publishing of PowerShell modules
 date: 2022-12-16
-tags: ["automation", "tutorial", "powershell"]
+tags: ["automation", "powershell"]
 wip: true
 ---
 
