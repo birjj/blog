@@ -53,7 +53,7 @@ Let's have a look at the various data points we can use to identify repeat visit
 
 <dl>
 <dt>IP address or other traffic data</dt>
-<dd>Covered by the Directive under traffic data:<br><br>
+<dd>Covered by the Directive under traffic data:
 
 <blockquote>(26) The data [...] processed within electronic communications networks to establish connections and to transmit information contain information on the private life of natural persons [...]. Such data may only be stored to the extent that is necessary for the provision of the service for the purpose of billing and for interconnection payments, and for a limited time. Any further processing of such data [...] may only be allowed if the subscriber has agreed to this on the basis of accurate and full information given by the provider [...]. Traffic data used for marketing communications services or for the provision of value added services should also be erased or made anonymous after the provision of the service. Service providers should always keep subscribers informed of the types of data they are processing and the purposes and duration for which this is done.</blockquote>
 
@@ -64,7 +64,7 @@ Since things like GeoIP lookups use the IP address and therefore require accessi
 </dd>
 
 <dt>Screen size, browser version and other client data</dt>
-<dd>Covered by the Directive as data that has previously been stored by the browser vendor or device manufacturer, which we then access. As put by the EU Data Protection Working Party in <a href="https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf">a 2014 opinion on fingerprinting</a>:<br><br>
+<dd>Covered by the Directive as data that has previously been stored by the browser vendor or device manufacturer, which we then access. As put by the EU Data Protection Working Party in <a href="https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp224_en.pdf">a 2014 opinion on fingerprinting</a>:
 
 <blockquote>Information that is stored by one party (including information stored by the user or device manufacturer) which is later accessed by another party is therefore within the scope of Article 5(3). [...] The consent requirement also applies when a read-only value is accessed (e.g. requesting the MAC address of a network interface via the OS API).</blockquote>
 
@@ -79,7 +79,7 @@ Since the ePrivacy Directive defines traffic data as being <em>"any data process
 </dd>
 
 <dt>Any data stored by third parties (or us)</dt>
-<dd>This is trivially covered by Article 5(3) of the Directive, which we have covered already:<br><br>
+<dd>This is trivially covered by Article 5(3) of the Directive, which we have covered already:
 
 <blockquote>[...] the storing of information, or the gaining of access to information already stored, in the terminal equipment of a subscriber or user is only allowed on condition that the subscriber or user concerned has given his or her consent [...]</blockquote>
 
