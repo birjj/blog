@@ -18,27 +18,7 @@ When writing web extensions, we often want to modify specific parts of the DOM, 
 
 Through my work on web extensions I've found it useful to split the functionality up into reusable parts. My go-to architecture looks a little something like this:
 
-```mermaid
-%%{ init : { "flowchart" : { "curve" : "linear" } } }%%
-flowchart TD
-    load(((Page load)))
-
-    subgraph script [Content script]
-        observer{{DOM observer}}
-        injection1{{"Example injection\nWatches '.example'"}}
-    end
-
-    subgraph page [Existing page]
-        dom[[DOM]]
-        framework[React]
-    end
-
-    load -.->|Triggers| script
-    observer -->|"Informs about relevant DOM changes"| injection1
-    injection1 -->|"Registers selector"| observer
-    observer <--->|Observes| dom
-    framework -->|Updates| dom
-```
+![Diagram of framework architecture](./framework_diagram.svg)
 
 ## The injection instances
 
