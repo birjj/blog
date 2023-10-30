@@ -52,29 +52,55 @@ Although not enough to get us all the way to our final password, this can be use
 
 In order to actually implement this early discard for our brute forcing, we'll filter out any characters that encode to a non-lowercase base64 output:
 
-```pseudo
-asciiCodes = [32...127];
-permittedBits = Set.from([26...52].map(i => i.toBinary(padTo=6)));
-getAllowedCodes = (currentString) => {
-  binary = currentString.toBinary();
-  # the last 0, 2 or 4 bits of the input binary are currently part of an unclosed base64 character
-  unclosedBits = binary[floor(len(binary)/6)*6...];
-  return asciiCodes.filter(c => {
-    # we check if appending the character would result in an allowed bit-group
-    closedBits = (unclosedBits + c.toBinary(padTo=8));
-    closedChar = closedBits[0...6];
-    if (!permittedBits.has(closedChar)) { return false; }
-    # and if the remaining bits of the character create an additional closed bit-group, check that too
-    otherBits = closedBits[6...];
-    if (len(otherBits) == 6 && !permittedBits.has(otherBits)) { return false; }
-    return true;
-  });
-};
-generateStrings = (currentString, targetLength) => {
+```javascript
+const asciiCodes = [32...127];
+const permittedBits = new Set([26...52].map(i => i.toBinary(padTo=6)));
+const generateStrings = (currentString, targetLength) => {
   if (targetLength <= 0) { return [currentString]; }
   return getAllowedCodes(currentString)
-    .flatMap(code => generateStrings(currentString + char(code), targetLength - 1));
+    .flatMap(code => {
+      const candidateStr = currentString + String.fromCharCode(code);
+      // abort if it doesn't encode correctly in the forwards direction
+      const binary = [...candidateStr].map(char => char.toBinary(padTo=8)).join("");
+      for (let i = 0; i + 6 < binary.length; i += 6) {
+        if (!permittedBits.has(binary[i...i+6])) { return []; }
+      }
+      // otherwise dive into this branch
+      return generateStrings(currentString + char(code), targetLength - 1)
+    });
 };
 ```
 
-This allows us to get a list of characters that can be appended to a given string, while maintaining the property that the base64 encoding is of the format we want. This gives us significantly fewer strings to test: almost 201 _thousand_ times fewer strings at length 10 than for naïve brute forcing.
+This allows us to get a list of characters that can be appended to a given string, while maintaining the property that the base64 encoding is of the format we want.
+
+Unfortunately this didn't give us quite enough information to start brute forcing, nor anything to really go by, so we need to dive a bit deeper.
+
+To further limit our search space we can consider the requirement that the password must be a palindrome. Currently we only check if the encoding works in the forwards direction, but since the last half of the password must be the first half reversed, we can abort early if the encoding doesn't work in the reverse direction. Unfortunately we don't know what offset the latter half will be at (`abc|cba` vs. `abc|dec|ba` vs. `abc|dcb|a`), so we can only abort if the encoding doesn't work for _any_ of the three possible offsets:
+
+```javascript
+const encodesCorrectly = (binary, offset) => {
+  for (let i = offset; i + 6 < binary.length; i += 6) {
+    if (!permittedBits.has(binary[i...i+6])) { return false; }
+  }
+  return true;
+}
+const generateStrings = (currentString, targetLength) => {
+  if (targetLength <= 0) { return [currentString]; }
+  return getAllowedCodes(currentString)
+    .flatMap(code => {
+      const candidateStr = currentString + char(code);
+      // abort if it doesn't encode safely in the forwards direction
+      const binary = [...candidateStr].map(char => char.toBinary(padTo=8)).join("");
+      if (!encodesCorrectly(binary, 0)) { return []; }
+      // and if it doesn't encode in at least one of the possible offsets in the backwards direction
+      const reverseBinary = [...candidateStr].reverse().map(char => char.toBinary(padTo=8)).join("");
+      if (![0,2,4].any(offset => encodesCorrectly(reverseBinary, offset))) {
+        return [];
+      }
+      // otherwise dive into this branch
+      return generateStrings(str, targetLength - 1);
+    });
+};
+```
+
+This significantly comes down on the number of valid strings we end up generating. Another important aspect of the resulting strings of this function is that, when looking at valid strings of length 3 (which we know our string must be a concatenation of), the only ones containing digits contain one of 0, 1, 2, 3, 7, 8 or 9.
