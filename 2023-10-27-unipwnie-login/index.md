@@ -37,15 +37,44 @@ We'd therefore need to limit the available possiblities as much as possible, in 
 [Base64](https://en.wikipedia.org/wiki/Base64) is an encoding algorithm that takes arbitrary binary data and turns it into a string consisting only of a subset of ASCII characters. In our case we're encoding a password, consisting of ASCII characters, so the binary data will simply be their ASCII values appended one after the other.  
 Base64 works by splitting the binary data up into groups of 6 bits each. Each of these 6-bit groups can be represented by one of 64 pre-chosen ASCII characters (thus the name). If the binary data does not have a length that's a nice multiple of 6 bits, the remaining bits are considered to be `0`. The common implementation of base64 outputs padded results, appending `=` to the output until the number of output characters is divisible by 4. This is done to play nicely together with how our computers normally work, with 8-bit long bytes, as 3 bytes becomes 4 base64 characters (and vice versa). This padding ensures decoding the base64 string always results in a whole number of bytes.
 
+Since base64 characters represent 6 bits each, splitting our password string into groups of three (each representing 24 bits) creates a set of mutually independent _triplets_ of characters. Any string starting with `"abc"` will always encode to an output starting with `"YWJj"`, regardless of what is appended to it.
+
 <p align="center"><img src="https://github.com/birjj/blog/assets/4542461/976dba10-242e-426a-9a45-b7c0fb70e3cf" /></p>
 
 Since one of the rules for the password is that its base64 encoding must only consist of lowercase letters, we can conlude a few things:
 
 1. The password's length must be divisible by 3. If it was not, the base64 encoding would be padded with the `=` character, which isn't a lowercase letter.
-2. When brute forcing our password we can quickly discard any branches that don't encode into only lowercase letters. There's no point in continuing to brute force the password `abc...` as its base64 encoding will always start with `btoa("abc") == "YWJj"`, and thus not be entirely lowercase letters.
+2. When brute forcing our password we can quickly discard any branches that encode into at least one non-lowercase character, once every bit of the character has been covered by an input bit.
 
 Although not enough to get us all the way to our final password, this can be used to significantly lower the cost of brute forcing.
 
-# Case 1 - Simple palindrome
+# Limiting our search space
 
-When talking about palindromes, they can generally take two shapes: they can be uneven in length, sharing their central character amongst the two sides (e.g. `abcba`), or they can be even in length, with no shared characters (e.g. `abccba`).
+In order to actually implement this early discard for our brute forcing, we'll filter out any characters that encode to a non-lowercase base64 output:
+
+```pseudo
+asciiCodes = [32...127];
+permittedBits = Set.from([26...52].map(i => i.toBinary(padTo=6)));
+getAllowedCodes = (currentString) => {
+  binary = currentString.toBinary();
+  # the last 0, 2 or 4 bits of the input binary are currently part of an unclosed base64 character
+  unclosedBits = binary[floor(len(binary)/6)*6...];
+  return asciiCodes.filter(c => {
+    # we check if appending the character would result in an allowed bit-group
+    closedBits = (unclosedBits + c.toBinary(padTo=8));
+    closedChar = closedBits[0...6];
+    if (!permittedBits.has(closedChar)) { return false; }
+    # and if the remaining bits of the character create an additional closed bit-group, check that too
+    otherBits = closedBits[6...];
+    if (len(otherBits) == 6 && !permittedBits.has(otherBits)) { return false; }
+    return true;
+  });
+};
+generateStrings = (currentString, targetLength) => {
+  if (targetLength <= 0) { return [currentString]; }
+  return getAllowedCodes(currentString)
+    .flatMap(code => generateStrings(currentString + char(code), targetLength - 1));
+};
+```
+
+This allows us to get a list of characters that can be appended to a given string, while maintaining the property that the base64 encoding is of the format we want. This gives us significantly fewer strings to test: almost 201 _thousand_ times fewer strings at length 10 than for naïve brute forcing.
