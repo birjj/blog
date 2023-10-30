@@ -46,6 +46,8 @@ Since one of the rules for the password is that its base64 encoding must only co
 1. The password's length must be divisible by 3. If it was not, the base64 encoding would be padded with the `=` character, which isn't a lowercase letter.
 2. When brute forcing our password we can quickly discard any branches that encode into at least one non-lowercase character, once every bit of the character has been covered by an input bit.
 
+We can additionally conclude that, since the sum of all digits must be an uneven number, the palindrome must be of uneven length (e.g. `abcba`, not `abccba`). Combined with knowing the length must be divisible by 3, and be between 10 and 20, this means that we know the password to be of length 15.
+
 Although not enough to get us all the way to our final password, this can be used to significantly lower the cost of brute forcing.
 
 # Limiting our search space
