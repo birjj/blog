@@ -139,7 +139,7 @@ const generateStrings = (currentString, targetLength) => {
 };
 ```
 
-With these improvements I was able to get a list of 31 valid passwords:
+With these improvements I was able to get a list of 36 valid passwords:
 
 ```javascript
 const fulfillsRequirements = str => { /* ... validation method from website */ };
