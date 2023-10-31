@@ -142,7 +142,15 @@ const generateStrings = (currentString, targetLength) => {
 With these improvements I was able to get a list of 31 valid passwords:
 
 ```javascript
-generateStrings("", 15);
+const fulfillsRequirements = str => { /* ... validation method from website */ };
+const toPalindrome = str => {
+  if (str.length % 2 === 0) {
+    return str + str.reverse();
+  }
+  return str + str[0...str.length - 1].reverse();
+}
+const getValidPasswords = () => generateStrings("", 8).map(toPalindrome).filter(fulfillsRequirements);
+getValidPasswords();
 // ["o'knXjs8sjXnk'o", "o'sjXnk8knXjs'o", "o(knXjs8sjXnk(o", ...]
 ```
 
@@ -152,7 +160,7 @@ Luckily this was easily solved by trying each of the valid passwords, which show
 
 ```javascript
 const $form = document.querySelector("form");
-generateStrings("", 15)
+getValidPasswords()
   .forEach(async (pass) => {
     const data = new FormData($form);
     data.set("password", pass);
