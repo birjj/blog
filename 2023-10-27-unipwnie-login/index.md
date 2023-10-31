@@ -1,4 +1,4 @@
-# [WiP] FE-CTF 2023 - Brute force ahoy
+# FE-CTF 2023 - Brute force ahoy
 
 This is my write-up for the 2023 CTF qualifier held by the Danish Defence Intelligence Service - [The UniPwnie Experience](https://fe-ctf.dk/). This was an open CTF event, with the top 10 teams being invited to an in-person event.  
 As I never intended to take it seriously, I didn't join with a team, and only solved the tasks I found interesting. Being more interested in algorithms than in penetration testing, I ended up only solving a single challenge: Login Level 3.
@@ -45,8 +45,8 @@ Since one of the rules for the password is that its base64 encoding must only co
 
 1. The password's length must be divisible by 3. If it was not, the base64 encoding would be padded with the `=` character, which isn't a lowercase letter.
 2. When brute forcing our password we can quickly discard any branches that encode into at least one non-lowercase character, once every bit of the character has been covered by an input bit.
-
-We can additionally conclude that, since the sum of all digits must be an uneven number, the palindrome must be of uneven length (e.g. `abcba`, not `abccba`). Combined with knowing the length must be divisible by 3, and be between 10 and 20, this means that we know the password to be of length 15.
+3. Since the sum of all digits must be an uneven number, the palindrome must be of uneven length (e.g. `abcba`, not `abccba`). Combined with knowing the length must be divisible by 3, and be between 10 and 20, this means that we know the password to be of length 15.
+4. As one of the requirements is to have 8 unique characters, and our password is a palindrome of length 15, the first half of the palindrome cannot have any duplicate characters.
 
 Although not enough to get us all the way to our final password, this can be used to significantly lower the cost of brute forcing.
 
@@ -105,4 +105,64 @@ const generateStrings = (currentString, targetLength) => {
 };
 ```
 
-This significantly comes down on the number of valid strings we end up generating. Another important aspect of the resulting strings of this function is that, when looking at valid strings of length 3 (which we know our string must be a concatenation of), the only ones containing digits contain one of 0, 1, 2, 3, 7, 8 or 9.
+This significantly lowers the number of valid strings we end up generating.
+
+# Brute-forcing
+
+With the above code we can limit our search space to be just small enough that we can test all possibilities in reasonable time. Another improvement I ended up implementing was aborting any branch that included any of the [disallowed words](https://gist.github.com/birjj/15a1eb5fdafa112046804146042f18e9#file-words-json) (only checking words of length 3 or below, for the sake of performance):
+
+```javascript
+const containsSmallWord = (str) => {
+  const subject = str.toLowerCase();
+  const words = ["aa", "ab", "ac", ...];
+  return words.some(word => subject.includes(word));
+};
+const encodesCorrectly = (binary, offset) => {
+  for (let i = offset; i + 6 < binary.length; i += 6) {
+    if (!permittedBits.has(binary[i...i+6])) { return false; }
+  }
+  return true;
+}
+const generateStrings = (currentString, targetLength) => {
+  if (targetLength <= 0) { return [currentString]; }
+  return getAllowedCodes(currentString)
+    .flatMap(code => {
+      const candidateStr = currentString + char(code);
+      // abort if it doesn't encode safely in the forwards direction
+      const binary = [...candidateStr].map(char => char.toBinary(padTo=8)).join("");
+      if (!encodesCorrectly(binary, 0)) { return []; }
+      // and if it doesn't encode in at least one of the possible offsets in the backwards direction
+      const reverseBinary = [...candidateStr].reverse().map(char => char.toBinary(padTo=8)).join("");
+      if (![0,2,4].some(offset => encodesCorrectly(reverseBinary, offset))) {
+        return [];
+      }
+      if (containsSmallWord(candidateStr)) { return []; }
+      // otherwise dive into this branch
+      return generateStrings(str, targetLength - 1);
+    });
+};
+```
+
+With these improvements I was able to get a list of 31 valid passwords:
+
+```javascript
+generateStrings("", 15);
+// ["o'knXjs8sjXnk'o", "o'sjXnk8knXjs'o", "o(knXjs8sjXnk(o", ...]
+```
+
+Unfortunately, trying to use one of them in the login form only passed the frontend validation, returning a 403 Forbidden from the backend. This was exactly the same error as would be given if we bypassed the client-side validation and submitted an invalid password.
+
+Luckily this was easily solved by trying each of the valid passwords, which showed that the backend accepted exactly one of them:
+
+```javascript
+const $form = document.querySelector("form");
+generateStrings("", 15)
+  .forEach(async (pass) => {
+    const data = new FormData($form);
+    data.set("password", pass);
+    const resp = await fetch("/login", { method: "POST", body: data });
+    if (resp.ok) { console.log("VALID:", pass); }
+  });
+```
+
+Why the backend would accept arbitrary usernames, but only one password, is a mystery that isn't meant to be solved ;) Entering the successful password gave us the flag, earning us the spot as second solver of the challenge.
