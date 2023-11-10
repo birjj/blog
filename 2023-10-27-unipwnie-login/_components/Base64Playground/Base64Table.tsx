@@ -1,12 +1,12 @@
-import { fromBits, toBits } from "./utils";
+import type { JSX } from "preact/jsx-runtime";
+import { fromBits, mapPadded, toBits } from "./utils";
 
-const Base64Table = ({ value }: { value: string }) => {
+const Base64Table = ({ value, ...props }: JSX.IntrinsicElements["table"] & { value: string }) => {
   const bits = toBits(value);
-  const paddedLength = Math.ceil(bits.length / 6) * 6;
   const encoded = fromBits(bits);
 
   return (
-    <table className="text-center border not-prose text-sm">
+    <table className={`${props.className || ""} text-center border not-prose text-sm border-slate-400/50 dark:border-slate-600/50`}>
       <tbody>
         <InputRow value={value} />
         <BitRow bits={bits} />
@@ -27,22 +27,26 @@ const InputRow = ({ value }: { value: string }) => {
         <Cell isHeader scope="row">
           Text (ASCII)
         </Cell>
-        {value.split("").map((c, i) => (
-          <Cell key={i} colSpan={8}>
-            {c}
-          </Cell>
-        ))}
-        {[...new Array(3 - value.length)].map((_, i) => (
-          <Cell key={i} colSpan={8} rowSpan={2} isPadding />
-        ))}
+        {mapPadded(
+          value.split(""),
+          3,
+          (c, i, _, isPadding) => (
+            <Cell key={i} colSpan={8} className="border-0">
+              {c}
+            </Cell>
+          )
+        )}
       </tr>
       <tr>
         <Cell isHeader scope="row">
           Value
         </Cell>
-        {value.split("").map((c, i) => (
-          <Cell key={i} colSpan={8}>
-            {c.charCodeAt(0)}
+        {mapPadded(
+          value.split(""),
+          3,
+          (c, i, _, isPadding) => (
+          <Cell isPadding={isPadding} key={i} colSpan={8}>
+            {c?.charCodeAt(0)}
           </Cell>
         ))}
       </tr>
@@ -57,21 +61,15 @@ const BitRow = ({ bits }: { bits: string }) => {
       <Cell isHeader colSpan={2} scope="row">
         Bits
       </Cell>
-      {bits.split("").map((b, i) => (
-        <Cell key={i} className="font-mono">
-          {b}
-        </Cell>
-      ))}
-      {[...new Array(paddedLength - bits.length)].map((_, i) => (
-        <Cell className="font-mono" key={bits.length + i}>
-          0
-        </Cell>
-      ))}
-      {[...new Array(24 - paddedLength)].map((_, i) => (
-        <Cell isPadding className="font-mono" key={paddedLength + i}>
-          &nbsp;
-        </Cell>
-      ))}
+      {mapPadded(
+        bits.split(""),
+        24,
+        (b,i,_,isPadding) => (
+          <Cell isPadding={isPadding} key={i}>
+            {isPadding ? (i < paddedLength ? "0" : "\xa0" /* &nbsp */) : b}
+          </Cell>
+        )
+      )}
     </tr>
   );
 };
@@ -89,31 +87,29 @@ const OutputRow = ({ value }: { value: string }) => {
         <Cell isHeader scope="row">
           Value
         </Cell>
-        {valueCodes.map((v, i) => (
-          <Cell key={i} colSpan={6}>
-            {v}
-          </Cell>
-        ))}
-        {[...new Array(4 - valueCodes.length)].map((_, i) => (
-          <Cell isPadding key={valueCodes.length + i} colSpan={6}>
-            Padding
-          </Cell>
-        ))}
+        {mapPadded(
+          valueCodes,
+          4,
+          (v, i, _, isPadding) => (
+            <Cell isPadding={isPadding} key={i} colSpan={6}>
+              {isPadding ? "Padding" : v}
+            </Cell>
+          )
+        )}
       </tr>
       <tr>
         <Cell isHeader scope="row">
           Character
         </Cell>
-        {value.split("").map((c, i) => (
-          <Cell key={i} colSpan={6}>
-            {c}
-          </Cell>
-        ))}
-        {[...new Array(4 - value.length)].map((_, i) => (
-          <Cell isPadding key={value.length + i} colSpan={6}>
-            =
-          </Cell>
-        ))}
+        {mapPadded(
+          value.split(""),
+          4,
+          (c,i,_,isPadding) => (
+            <Cell className="border-0" key={i} colSpan={6}>
+              {c || "="}
+            </Cell>
+          )
+        )}
       </tr>
     </>
   );
@@ -127,8 +123,8 @@ const Cell = (
 ) => {
   const { className = "", isHeader, isPadding, ...rest } = props;
   const fullClass = `${className} ${
-    isPadding ? "bg-slate-400/10 italic text-center" : ""
-  } ${isHeader ? "bg-slate-400/25 font-bold" : ""} ${
+    isPadding ? "bg-slate-400/10 text-center" : ""
+  } ${isHeader ? "bg-slate-400/25 font-bold" : "font-mono"} ${
     !isPadding && !isHeader ? "bg-white dark:bg-black" : ""
   } border border-slate-400/50 dark:border-slate-600/50 py-[0.2em] px-[0.4em]`;
   return isHeader ? (

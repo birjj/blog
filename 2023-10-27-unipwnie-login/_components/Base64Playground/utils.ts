@@ -19,3 +19,18 @@ export const fromBits = (value: string) => {
   }
   return outp;
 };
+
+/** Like <Array>.map, but pads to the given length */
+export const mapPadded = <T,R>(data: T[], length: number, callback: (v: T | null, i: number, a: T[], isPadding: boolean) => R): R[] => {
+  const outp: R[] = [];
+  for (let i = 0; i < length; ++i) {
+    const isPadding = i >= data.length;
+    outp.push(callback(
+      isPadding ? null : data[i],
+      i,
+      data,
+      isPadding
+    ));
+  }
+  return outp;
+}

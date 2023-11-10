@@ -4,9 +4,6 @@ import Base64Input from "./Base64Input";
 
 const Base64Playground = () => {
   const [value, setValue] = useState("Ma");
-  const bits = value
-    .split("")
-    .map((v) => v.charCodeAt(0).toString(2).padStart(6, "0"));
 
   return (
     <>
