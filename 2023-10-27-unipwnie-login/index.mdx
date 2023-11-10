@@ -4,6 +4,8 @@ date: 2023-10-27
 tags: ["ctf"]
 ---
 
+import Base64Playground from "./_components/Base64Playground";
+
 This is my write-up for the 2023 CTF qualifier held by the Danish Defence Intelligence Service: [The UniPwnie Experience](https://fe-ctf.dk/). This was an open CTF event, with the top 10 teams being invited to an in-person event.  
 In this write-up I will focus on how I solved the "Login&nbsp;Level&nbsp;3" challenge, a brute-force based challenge which was released early in the CTF.
 
@@ -50,7 +52,7 @@ In our case we want a password that only contains 6-bit groups ranging from `011
 
 Most common implementations of base64 outputs padded results, appending `=` to the encoded output until its length is divisible by 4: this ensures that the base64 representation represents a whole number of our usual 8-bit bytes.
 
-<p align="center"><img src="https://github.com/birjj/blog/assets/4542461/976dba10-242e-426a-9a45-b7c0fb70e3cf" /></p>
+<Base64Playground client:visible />
 
 ### Back to our thoughts
 
