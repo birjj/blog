@@ -101,7 +101,7 @@ Unfortunately, this still turned out to be slightly too slow to be reasonable. C
 To further limit the search space we can consider the requirement that the password must be a palindrome.  
 Currently, we only check if the encoding works on the password as we build it up - but since we know that the password will eventually be reversed and added to itself to make a palindrome, we can also check that it encodes correctly in the reverse direction.
 
-Unfortunately, we don't know what offset the latter half will be at, so we'll simply test each of the three possible offsets and abort if none of them work:
+We don't know what offset the latter half will be at, so we'll simply test each of the three possible offsets and abort if none of them work:
 
 <div class="aside-container"><aside style="top:-4.75rem">
 
@@ -160,7 +160,7 @@ getValidPasswords();
 // ["o'knXjs8sjXnk'o", "o'sjXnk8knXjs'o", "o(knXjs8sjXnk(o", ...]
 ```
 
-Unfortunately, trying to use one of them in the login form only passed the frontend validation, returning a 403 Forbidden from the backend. This was exactly the same error as would be given if we bypassed the client-side validation and submitted an invalid password.
+Trying to use one of them in the login form only passed the frontend validation, returning a 403 Forbidden from the backend. This was exactly the same error as would be given if we bypassed the client-side validation and submitted an invalid password.
 
 Luckily this was easily solved by trying each of the valid passwords, which showed that the backend accepted exactly one of them:
 
