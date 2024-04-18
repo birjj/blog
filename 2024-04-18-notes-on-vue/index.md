@@ -31,7 +31,7 @@ In practice, this is done by adding an attribute - let's say `data-v-123456` - t
 }
 ```
 
-Personally, I love this approach. It's the [same approach taken by Astro](https://docs.astro.build/en/guides/styling/#scoped-styles), a framework I consider to be a near-ideal midpoint between Vue and React syntax-wise, and it not only simplifies the mental model for styling compared to CSS modules or CSS-in-JS, but is also performant and relatively side-effect free.
+Personally, I love this approach. It's the [same approach taken by Astro](https://docs.astro.build/en/guides/styling/#scoped-styles), a framework I consider to be a near-ideal midpoint between Vue and React syntax-wise, and it not only simplifies the mental model for styling compared to CSS modules or CSS-in-JS, but is also relatively side-effect free and easy to debug.
 
 ## The weird: Vue DSLs
 
@@ -81,7 +81,14 @@ export const WrapperComponent = ({ additionalProp, ...passthrough }: Props) => {
 }
 ```
 
-In Vue, this is (usually) implemented using [fallthrough props](https://vuejs.org/guide/components/attrs#fallthrough-attributes) - that is, it happens automatically. If your wrapper component only renders a single direct child, that child automatically receives e.g. the `class` attribute given to the parent, and its rendered value is automatically merged.
+In Vue, this is (usually) implemented using [fallthrough props](https://vuejs.org/guide/components/attrs#fallthrough-attributes) - that is, it happens automatically. If your wrapper component only renders a single direct child, that child automatically receives e.g. the `class` attribute given to the parent, and its rendered value is automatically merged:
+
+```vue
+<template>
+  <!-- This... just receives the fallthrough attributes? I hope? -->
+  <UnderlyingComponent />
+</template>
+```
 
 While this is nice when it works, it is frustratingly implicit and unintuitive to work with when it doesn't. In those cases you almost always have to break out into explicit handling of attributes, forcing you to learn how Vue _actually_ handles passthrough props - in which case you could've just as well started with that. For example:
 
