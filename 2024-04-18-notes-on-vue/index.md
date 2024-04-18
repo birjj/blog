@@ -99,7 +99,7 @@ While this is nice when it works, it is frustratingly implicit and unintuitive t
 
 ## The bad: breaking with the system
 
-While [React is "just JavaScript"](https://daverupert.com/2018/06/the-react-is-just-javascript-myth/), Vue is definitely not. Vue's ecosystem encapsulates a lot of things, choosing to use a compiler to translate a custom-made language into the HTML, CSS and JS needed to render them in a browser. This comes with a lot of positives (more on that [below](#native-scoped-styles)), but also a few weird things that you'll have to learn that are just The Vue Way™️. These include:
+While [React is "just JavaScript"](https://daverupert.com/2018/06/the-react-is-just-javascript-myth/), Vue is definitely not. Vue's ecosystem encapsulates a lot of things, choosing to use a compiler to translate a custom-made language into the HTML, CSS and JS needed to render them in a browser. This comes with a lot of positives (as mentioned above), but also a few weird things that you'll have to learn that are just The Vue Way™️. These include:
 
 ### Functions that aren't functions
 
