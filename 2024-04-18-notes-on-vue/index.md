@@ -2,13 +2,13 @@
 
 Coming from a background as a JavaScript (or more accurately, TypeScript) developer, there are a lot of things in Vue that seem smart, some that seem weird, and some that seem outright wrong. These are my notes on transitioning from a long history of React usage to developing in Vue (specifically using the Single File Components flavor, as that seems to be the modern approach).
 
-## The good: simplicity and power
+## The good: simplicity, DX and built-in power
 
 ### Native scoped styles
 
 Vue provides native support for [scoped styling](https://vuejs.org/api/sfc-css-features.html#scoped-css). You simply define `<style scoped>` instead of `<style>` in your SFC, and Vue will automatically transform all CSS selectors such that they only target elements rendered by the component.
 
-In practice, this is done by adding an attribute - let's say `data-v-123456` - to all elements rendered by a component. Selectors can then have `[data-v-123456]` added to each entry in them, to make sure they don't affect other elements. This is unlike e.g. CSS modules where classes are transformed into unique strings - a common solution for scoped styles in React codebases - in that they don't require manual handling. Everything Just Works™️, and is readily transparent when looking at the compiled output:
+In practice, this is done by adding an attribute - let's say `data-v-123456` - to all elements rendered by a component. Selectors can then have `[data-v-123456]` added to each entry in them, to make sure they don't affect other elements. This is unlike e.g. CSS modules where classes are transformed into unique strings - a common solution for scoped styles in React codebases - in that they don't require manual handling. Everything Just Works™, and is readily transparent when looking at the compiled output:
 
 ```css
 /* original CSS */
@@ -33,7 +33,21 @@ In practice, this is done by adding an attribute - let's say `data-v-123456` - t
 
 Personally, I love this approach. It's the [same approach taken by Astro](https://docs.astro.build/en/guides/styling/#scoped-styles), a framework I consider to be a near-ideal midpoint between Vue and React syntax-wise, and it not only simplifies the mental model for styling compared to CSS modules or CSS-in-JS, but is also relatively side-effect free and easy to debug.
 
+### Native reactive state
+
+TODO
+
+### A well-designed ecosystem
+
+Vue is particularly unique in how clean and well-designed its central ecosystem seems. Vue itself comes batteries-included for many tasks (scoped styles, state management, multi-language support, ...), and does so in a way that seems easy and well-integrated.
+
+This also affects the ecosystem around Vue: everything from the `vue` CLI, to the [primary state management library](https://pinia.vuejs.org/), to the [primary full-site framework](https://nuxt.com/) - they're all built with a high degree of developer experience design, documentation and clarity.
+
+As a side note, a related point about the Vue community is how ubiquitous the framework-agnostic ideal is in the community. While the React community primarily focuses on building good React experiences, the Vue community has a lot of ties to cross-JavaScript projects. To name a few: [Daniel Roe](https://github.com/danielroe) (lead of the Nuxt core team at the time of writing) also contributes to [unjs/magix-regexp](https://github.com/unjs/magic-regexp), [unjs/nitro](https://github.com/unjs/nitro) and [unjs/fontaine](https://github.com/unjs/fontaine). [Anthony Fu](https://github.com/antfu) (another big contributor to Nuxt) spearheaded [unocss](https://github.com/unocss/unocss) and [shikiji](https://github.com/antfu/shikiji). [Evan You](https://github.com/yyx990803), the creator of Vue itself, also created [Vite](https://vitejs.dev/), which has now become the defacto build tool for almost all modern frontend projects.
+
 ## The weird: Vue DSLs
+
+While [React is "just JavaScript"](https://daverupert.com/2018/06/the-react-is-just-javascript-myth/), Vue is definitely not. Vue's ecosystem encapsulates a lot of things, choosing to use a compiler to translate a custom-made language into the HTML, CSS and JS needed to render them in a browser. This comes with a lot of positives (as mentioned above), but also a few weird things that you'll have to learn that are just The Vue Way™. These include:
 
 ### Statements that aren't statements
 
@@ -98,8 +112,6 @@ While this is nice when it works, it is frustratingly implicit and unintuitive t
 - How does this interact with TypeScript typing? Can I be sure of the details of how that works? Can I modify it?
 
 ## The bad: breaking with the system
-
-While [React is "just JavaScript"](https://daverupert.com/2018/06/the-react-is-just-javascript-myth/), Vue is definitely not. Vue's ecosystem encapsulates a lot of things, choosing to use a compiler to translate a custom-made language into the HTML, CSS and JS needed to render them in a browser. This comes with a lot of positives (as mentioned above), but also a few weird things that you'll have to learn that are just The Vue Way™️. These include:
 
 ### Functions that aren't functions
 
