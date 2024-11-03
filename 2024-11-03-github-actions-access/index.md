@@ -6,39 +6,37 @@ draft: true
 series: GitHub Actions thoughts
 ---
 
-# Accessing other repos from GitHub Actions
+# Accessing Other Repositories from GitHub Actions
 
-Working with GitHub Actions in an organization, you'll quickly end up in situations where you want to access code from other repositories. This might be so you can do GitOps deployments, it might be so you can pull down shared Go modules, or it might be for something else entirely -- point is, it's difficult to get around.
+When working with GitHub Actions in an organization, you'll often need to access code from other repositories. Whether for GitOps deployments, shared Go modules, or something else entirely, it's a need that often crops up.
 
-Unfortunately GitHub doesn't have any good built-in solutions for this. [A discussion](https://github.com/orgs/community/discussions/46566) on allowing the short-lived `GITHUB_TOKEN` token to be granted access to other repos has existed for almost two years, and has just now gotten a response from someone on GitHub saying that they'll... add it to the backlog.
+Unfortunately, GitHub doesn't offer any particularly good solutions for this. [A discussion](https://github.com/orgs/community/discussions/46566) on allowing the short-lived `GITHUB_TOKEN` token to be granted access to other repos has existed for almost two years, and has just now gotten a response from someone on GitHub saying that they'll... add it to the backlog.
 
-Instead of waiting for GitHub to come up with something half-baked on their own, this article will list the options that are currently available, and the pros and cons of each. I'll be using the term "source repository" for the repo where your action is running in, and "target repository" for the one your workflow should be allowed to access.
+While we wait for a better GitHub-provided solution, here’s a look at the options available, along with the pros and cons of each. In this post, "source repository" refers to the repo where your action is running, and "target repository" is the one your workflow needs to access.
 
 ## Option 1 - User-bound PATs
 
-The most obvious solution is for the developer creating your CI workflow to generate a personal access token with the permissions they need, and then store it in a secret in your source repository.
+The simplest approach is for the developer creating your CI workflow to generate a personal access token (PAT) with the required permissions, and then store it as a secret in your source repository.
 
-Since GitHub supports fine-grained PATs that are targetted at specific repositories, a leak of this secret won't cause _too_ wide of a breach. This approach is also well-supported officially by GitHub, and doesn't require any third-party resources to be used.
+Since GitHub supports fine-grained PATs scoped to specific repositories, a leak of this secret won't cause _too_ wide of a breach. This approach is also well-supported officially by GitHub, and doesn't require any third-party resources to be used.
 
-The big downside of this is that the PAT is bound to whatever developer sets it up. Should this developer ever quit the organization, the setup will break until the PAT is replaced -- and you better hope it's well-documented where their PATs are stored!
+The big downside of this is that the PAT is bound to whatever developer sets it up. Should this developer ever leave the organization, the setup will break until the PAT is replaced -- and you better hope it's well-documented where the PATs are used and what permissions they need.
 
 Overall this is by far the easiest approach, but also the one that has the most pressing downsides. Binding CI workflows to a particular user is bound to cause trouble down the line.
 
 | Pros | Cons |
 | ---- | ---- |
-| [+] Simple and easy to understand | [-] Ties the CI workflow to a specific GitHub user. Should they ever leave, everything breaks |
-| [+] Entirely GitHub-internal | [-] Requires manual rotation by various users in your org; in practice, this is unlikely to happen |
+| [+] Simple and easy to understand | [-] Ties the CI workflow to a specific GitHub user |
+| [+] Entirely GitHub-internal | [-] Requires manual rotation by various users in your org |
 | [+] Can be scoped to the specific workflow needs | [-] Easily leaked by bad actors with access to the source repo |
 
 ## Option 2 - Deploy keys
 
-If your workflow only needs read or write access to the target git repository, and it can do this using SSH keys, then [deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys) is an attractive option. These are SSH keys that are bound to a specific repository, instead of a specific user, and give read or write access to them.
+If your workflow only needs SSH-based read/write access to the target git repository, [deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys) can be a good option. These are SSH keys that are bound to a specific repository, instead of a specific user, and configurably give read or write access to them.
 
-The approach to using these in GitHub Actions workflows would be to generate a new SSH key locally, register its public key in the target repository, and then store its private key as a GitHub secret in your source repository.
+The approach to using these in GitHub Actions workflows is to generate a new SSH key locally, register its public key in the target repository, and then store its private key as a GitHub secret in your source repository.
 
-The downside to this is that deploy keys aren't particularly narrowly scoped; if you give them write access they can do pretty much anything to the code in your repository (force push, delete branches, etc.), and since they aren't tied to a particular user, they can't easily be audited later. In addition, they can't be used if you need to e.g. open a pull request, if your needs rely on PATs instead of SSH keys, or if you need access to multiple repositories with one credential.
-
-Deploy keys aren't technically designed for this use -- they're for letting actual servers pull down your application code for deployments -- so they don't have many of the fine-grained options that personal access tokens do. If they fit your use case though, they can be a great choice.
+The downside is that the deploy keys are designed for another use case entirely, and therefore lack some of the things we might want: they can't be used if you need multi-repo access, they can't be audited as they aren't tied to a user, and they can't be used to authenticate things like opening PRs. They also require your use case to support SSH keys instead of PAT auth. If they fit your use case though, they can be a great choice.
 
 | Pros | Cons |
 | ---- | ---- |
@@ -46,7 +44,7 @@ Deploy keys aren't technically designed for this use -- they're for letting actu
 | [+] Entirely GitHub-internal | [-] Requires manual rotation, as they don't have unlimited lifetime |
 | [+] Can be scoped to a particular repository | [-] Easily leaked by bad actors with access to the source repo |
 | [+] Can be managed by your DevOps team instead of individual developers | [-] Only works if you need access to _one_ repository |
-| | [-] Can't be used for anything other than reading/writing code changes (e.g. can't open PRs) |
+| | [-] Can't be used for non-code access |
 
 ## Option 3 - Machine user-bound PATs
 
@@ -79,9 +77,9 @@ The downside is that your DevOps team now has to create reusable workflows that 
 
 ## Option 5 - GitHub App-generated short-lived tokens
 
-The great big final solution, which we have ended up reaching in my current organization, is to build out a GitHub App that generates [short-lived installation tokens](https://docs.github.com/en/rest/apps/apps?apiVersion=2022-11-28#create-an-installation-access-token-for-an-app) on-demand. This consists of registering a GitHub App in your organization with access to the repositories you need, and storing its auth in an external system (in our case an AWS Lambda function). Workflows that need a PAT for your target repository then [generate an OIDC token](https://github.com/actions/toolkit/tree/main/packages/core#oidc-token) to identify them, send it and the target repository/permissions to the external system, and receive back a short-lived installation token if they are permitted to create the access.
+The great big final solution, which we have ended up reaching in my current organization, is to build out a GitHub App that generates [short-lived installation tokens](https://docs.github.com/en/rest/apps/apps?apiVersion=2022-11-28#create-an-installation-access-token-for-an-app) on-demand. This consists of registering a GitHub App in your organization with access to the repositories you need, and storing its auth in an external system that you design (in our case an AWS Lambda function). That external system is designed to receive [an OIDC token](https://github.com/actions/toolkit/tree/main/packages/core#oidc-token) from workflows along with the name of the repo they want access to, validate that the source repository should be allowed to access the target repository, and then generate a scoped installation token to send back. This allows workflows to request short-lived tokens on-demand.
 
-This is a significantly more complex system, and requires you to design a security model that manages which repositories can access what repositories with some set of permissions (in our case we requires the target repository to contain a file explicitly listing the repos that can have access). The upside is that you no longer have long-lived PAT tokens floating around your system.
+This is a significantly more complex system, and requires you to design a security model that manages which repositories can access what repositories with some set of permissions (in our case we require the target repository to contain a file explicitly listing the repos that can have access). It's a system you'll have to design yourself (or piggyback on [someone who has already done the work](https://github.com/qoomon/actions--access-token)), because GitHub doesn't come with it built in, which also means you'll be introducing a single point of failure to your workflows. The upside is that you no longer have long-lived PAT tokens floating around your system.
 
 This approach can also be combined with the reusable workflows approach from above, if the OIDC token is verified to have a job workflow ref from your DevOps-managed repository.
 
@@ -90,3 +88,9 @@ This approach can also be combined with the reusable workflows approach from abo
 | [+] Tokens are short-lived and automatically revoked | [-] Requires an external custom-designed setup |
 | [+] Tokens are scoped, with limited impact if leaked | [-] Far more complex, with a custom security model |
 | [+] Security is managed by your DevOps team, but with great flexibility of use for your developers | [-] The external system becomes a single point of failure |
+
+## Conclusion
+
+Every approach to this problem presents a trade-off between simplicity, security and scalability. If your requirements are simple and involve minimal risk, a user-bound PAT or deploy key might suffice. For organizations prioritizing security and flexibility, setting up a GitHub App with short-lived tokens, potentially combined with reusable workflows, can offer robust control, though with added complexity.
+
+In the DevOps team at my current organization we've chosen to implement a GitHub App for on-demand token generation. This offers the best trade-off for our specific situation, and has been received very well by developers -- but it's important that you are aware of the options you have.
